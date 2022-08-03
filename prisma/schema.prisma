@@ -1,0 +1,178 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                    Int              @id @default(autoincrement())
+  fullName              String
+  bio                   String
+  email                 String           @unique
+  password              String
+  avatarImage           String
+  coverImage            String
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @default(now())
+  status                String
+  friends               User[]           @relation("friends")
+  friendsRelation       User[]           @relation("friends")
+  posts                 Post[]           @relation("post")
+  friendInvitations     Invitation[]     @relation("receiver")
+  sentFriendInvitations Invitation[]     @relation("sender")
+  newfeeds              Post[]           @relation("newfeeds")
+  notifications         Notification[]
+  chatRooms             ChatRoomOnUser[]
+  tags                  Post[]           @relation("tag")
+  comments              Comment[]        @relation("comment")
+  taggedComment         Comment[]        @relation("tag")
+  reactions             Reaction[]
+  messsages             Message[]        @relation("user")
+  seenMessages          Message[]        @relation("seen")
+}
+
+model Post {
+  id        Int      @id @default(autoincrement())
+  title     String
+  images    String[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  userId Int
+  user   User @relation("post", fields: [userId], references: [id])
+
+  userTagId Int
+  tags      User @relation("tag", fields: [userTagId], references: [id])
+
+  userNewfeedId Int
+  userNewfeed   User @relation("newfeeds", fields: [userNewfeedId], references: [id])
+
+  reactions    Reaction[]
+  comments     Comment[]
+  notification Notification[]
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  message   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  userId Int
+  user   User @relation("comment", fields: [userId], references: [id])
+
+  userTagId Int
+  tags      User @relation("tag", fields: [userTagId], references: [id])
+
+  replyId Int?
+  replyOf Comment?  @relation("reply", fields: [replyId], references: [id])
+  replies Comment[] @relation("reply")
+
+  reactions Reaction[]
+
+  postId       Int
+  post         Post           @relation(fields: [postId], references: [id])
+  Notification Notification[]
+}
+
+model Reaction {
+  id        Int      @id @default(autoincrement())
+  type      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  postId Int?
+  post   Post? @relation(fields: [postId], references: [id])
+
+  commentId    Int?
+  comment      Comment?       @relation(fields: [commentId], references: [id])
+  Message      Message[]
+  Notification Notification[]
+}
+
+model ChatRoom {
+  id     Int              @id @default(autoincrement())
+  type   String
+  isRead Boolean
+  name   String
+  users  ChatRoomOnUser[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  messages Message[]
+}
+
+model Message {
+  id        Int      @id @default(autoincrement())
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  chatRoomId Int
+  chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id])
+
+  userId Int
+  user   User @relation("user", fields: [userId], references: [id])
+
+  reactionId Int
+  reaction   Reaction @relation(fields: [reactionId], references: [id])
+
+  seenUserId Int
+  seen       User @relation("seen", fields: [seenUserId], references: [id])
+}
+
+model Invitation {
+  id        Int      @id @default(autoincrement())
+  status    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  receiverId Int
+  receiver   User @relation("receiver", fields: [receiverId], references: [id])
+
+  senderId Int
+  sender   User @relation("sender", fields: [senderId], references: [id])
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  title     String
+  link      String
+  type      String
+  isRead    Boolean
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  postId Int?
+  post   Post? @relation(fields: [postId], references: [id])
+
+  forCommentId Int?
+  forComment   Comment? @relation(fields: [forCommentId], references: [id])
+
+  forReactionId Int?
+  forReaction   Reaction? @relation(fields: [forReactionId], references: [id])
+}
+
+model ChatRoomOnUser {
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id])
+  chatRoomId Int
+  chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id])
+
+  asignedAt DateTime @default(now())
+
+  @@id([userId, chatRoomId])
+}
