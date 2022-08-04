@@ -13,11 +13,11 @@ datasource db {
 model User {
   id                    Int              @id @default(autoincrement())
   fullName              String
-  bio                   String
+  bio                   String?
   email                 String           @unique
   password              String
-  avatarImage           String
-  coverImage            String
+  avatarImage           String?
+  coverImage            String?
   createdAt             DateTime         @default(now())
   updatedAt             DateTime         @default(now())
   status                String
@@ -47,11 +47,11 @@ model Post {
   userId Int
   user   User @relation("post", fields: [userId], references: [id])
 
-  userTagId Int
-  tags      User @relation("tag", fields: [userTagId], references: [id])
+  userTagId Int?
+  tags      User? @relation("tag", fields: [userTagId], references: [id])
 
-  userNewfeedId Int
-  userNewfeed   User @relation("newfeeds", fields: [userNewfeedId], references: [id])
+  userNewfeedId Int?
+  userNewfeed   User? @relation("newfeeds", fields: [userNewfeedId], references: [id])
 
   reactions    Reaction[]
   comments     Comment[]
@@ -67,8 +67,8 @@ model Comment {
   userId Int
   user   User @relation("comment", fields: [userId], references: [id])
 
-  userTagId Int
-  tags      User @relation("tag", fields: [userTagId], references: [id])
+  userTagId Int?
+  tags      User? @relation("tag", fields: [userTagId], references: [id])
 
   replyId Int?
   replyOf Comment?  @relation("reply", fields: [replyId], references: [id])
@@ -124,11 +124,11 @@ model Message {
   userId Int
   user   User @relation("user", fields: [userId], references: [id])
 
-  reactionId Int
-  reaction   Reaction @relation(fields: [reactionId], references: [id])
+  reactionId Int?
+  reaction   Reaction? @relation(fields: [reactionId], references: [id])
 
-  seenUserId Int
-  seen       User @relation("seen", fields: [seenUserId], references: [id])
+  seenUserId Int?
+  seen       User? @relation("seen", fields: [seenUserId], references: [id])
 }
 
 model Invitation {
