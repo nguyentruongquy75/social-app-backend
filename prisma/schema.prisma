@@ -48,10 +48,9 @@ model Post {
   user   User @relation("post", fields: [userId], references: [id])
 
   userTagId Int
-  tags      User @relation("tag", fields: [userTagId], references: [id])
+  tags      User[] @relation("tag")
 
-  userNewfeedId Int
-  userNewfeed   User @relation("newfeeds", fields: [userNewfeedId], references: [id])
+  userNewfeed User[] @relation("newfeeds")
 
   reactions    Reaction[]
   comments     Comment[]
@@ -67,8 +66,7 @@ model Comment {
   userId Int
   user   User @relation("comment", fields: [userId], references: [id])
 
-  userTagId Int
-  tags      User @relation("tag", fields: [userTagId], references: [id])
+  tags User[] @relation("tag")
 
   replyId Int?
   replyOf Comment?  @relation("reply", fields: [replyId], references: [id])
@@ -124,11 +122,10 @@ model Message {
   userId Int
   user   User @relation("user", fields: [userId], references: [id])
 
-  reactionId Int
-  reaction   Reaction @relation(fields: [reactionId], references: [id])
+  reaction Reaction[]
 
   seenUserId Int
-  seen       User @relation("seen", fields: [seenUserId], references: [id])
+  seen       User[] @relation("seen")
 }
 
 model Invitation {
