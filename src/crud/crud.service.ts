@@ -26,7 +26,9 @@ export class CrudService {
   }
 
   async findAll(params: FindDto) {
-    let { where, include, select, orderBy, page, size } = params;
+    let { where, include, select, orderBy, page, size, modelName } = params;
+
+    modelName = modelName ?? this.modelName;
 
     const take = size ?? 10;
     page = page ?? -1;
@@ -51,9 +53,9 @@ export class CrudService {
       delete queryBuilder.take;
     }
 
-    const items = await this.prisma[this.modelName].findMany(queryBuilder);
+    const items = await this.prisma[modelName].findMany(queryBuilder);
 
-    const total = await this.prisma[this.modelName].count({
+    const total = await this.prisma[modelName].count({
       where: queryBuilder.where,
     });
 
