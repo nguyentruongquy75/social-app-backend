@@ -6,9 +6,17 @@ import { PrismaService } from './prisma/prisma.service';
 import { UsersModule } from './users/users.module';
 import { CrudModule } from './crud/crud.module';
 import { CrudService } from './crud/crud.service';
+import { InvitationModule } from './invitation/invitation.module';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
 
 @Module({
-  imports: [AuthModule, CrudModule, UsersModule],
+  imports: [
+    AuthModule,
+    CrudModule,
+    UsersModule,
+    InvitationModule,
+    CloudinaryModule,
+  ],
   controllers: [AppController],
   providers: [AppService, PrismaService, CrudService],
 })
