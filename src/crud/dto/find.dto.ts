@@ -18,4 +18,7 @@ export class FindDto {
 
   @IsOptional()
   size?: number;
+
+  @IsOptional()
+  modelName?: string;
 }
