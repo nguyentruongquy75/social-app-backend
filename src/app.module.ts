@@ -9,6 +9,7 @@ import { CrudService } from './crud/crud.service';
 import { InvitationModule } from './invitation/invitation.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { PostModule } from './post/post.module';
+import { ReactionModule } from './reaction/reaction.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { PostModule } from './post/post.module';
     InvitationModule,
     CloudinaryModule,
     PostModule,
+    ReactionModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService, CrudService],
