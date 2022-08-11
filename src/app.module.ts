@@ -10,6 +10,7 @@ import { InvitationModule } from './invitation/invitation.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { PostModule } from './post/post.module';
 import { ReactionModule } from './reaction/reaction.module';
+import { CommentModule } from './comment/comment.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { ReactionModule } from './reaction/reaction.module';
     CloudinaryModule,
     PostModule,
     ReactionModule,
+    CommentModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService, CrudService],
