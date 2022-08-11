@@ -47,8 +47,7 @@ model Post {
   userId Int
   user   User @relation("post", fields: [userId], references: [id])
 
-  userTagId Int
-  tags      User[] @relation("tag")
+  tags User[] @relation("tag")
 
   userNewfeed User[] @relation("newfeeds")
 
@@ -69,13 +68,13 @@ model Comment {
   tags User[] @relation("tag")
 
   replyId Int?
-  replyOf Comment?  @relation("reply", fields: [replyId], references: [id])
+  replyOf Comment?  @relation("reply", fields: [replyId], references: [id], onDelete: Cascade)
   replies Comment[] @relation("reply")
 
   reactions Reaction[]
 
   postId       Int
-  post         Post           @relation(fields: [postId], references: [id])
+  post         Post           @relation(fields: [postId], references: [id], onDelete: Cascade)
   Notification Notification[]
 }
 
@@ -89,10 +88,10 @@ model Reaction {
   user   User @relation(fields: [userId], references: [id])
 
   postId Int?
-  post   Post? @relation(fields: [postId], references: [id])
+  post   Post? @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   commentId    Int?
-  comment      Comment?       @relation(fields: [commentId], references: [id])
+  comment      Comment?       @relation(fields: [commentId], references: [id], onDelete: Cascade)
   Message      Message[]
   Notification Notification[]
 }
@@ -117,7 +116,7 @@ model Message {
   updatedAt DateTime @default(now())
 
   chatRoomId Int
-  chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id])
+  chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
 
   userId Int
   user   User @relation("user", fields: [userId], references: [id])
@@ -154,20 +153,20 @@ model Notification {
   user   User @relation(fields: [userId], references: [id])
 
   postId Int?
-  post   Post? @relation(fields: [postId], references: [id])
+  post   Post? @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   forCommentId Int?
-  forComment   Comment? @relation(fields: [forCommentId], references: [id])
+  forComment   Comment? @relation(fields: [forCommentId], references: [id], onDelete: Cascade)
 
   forReactionId Int?
-  forReaction   Reaction? @relation(fields: [forReactionId], references: [id])
+  forReaction   Reaction? @relation(fields: [forReactionId], references: [id], onDelete: Cascade)
 }
 
 model ChatRoomOnUser {
   userId     Int
   user       User     @relation(fields: [userId], references: [id])
   chatRoomId Int
-  chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id])
+  chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
 
   asignedAt DateTime @default(now())
 
