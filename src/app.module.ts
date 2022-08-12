@@ -11,6 +11,7 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { PostModule } from './post/post.module';
 import { ReactionModule } from './reaction/reaction.module';
 import { CommentModule } from './comment/comment.module';
+import { ChatModule } from './chat/chat.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { CommentModule } from './comment/comment.module';
     PostModule,
     ReactionModule,
     CommentModule,
+    ChatModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService, CrudService],

@@ -99,14 +99,18 @@ model Reaction {
 model ChatRoom {
   id     Int              @id @default(autoincrement())
   type   String
-  isRead Boolean
+  isRead Boolean          @default(false)
   name   String
   users  ChatRoomOnUser[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
 
-  messages Message[]
+  messages      Message[] @relation("messages")
+  lastMessageId Int?
+  lastMessage   Message?  @relation("lastMessage", fields: [lastMessageId], references: [id])
+
+  @@unique([lastMessageId])
 }
 
 model Message {
@@ -116,14 +120,16 @@ model Message {
   updatedAt DateTime @default(now())
 
   chatRoomId Int
-  chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
+  chatRoom   ChatRoom @relation("messages", fields: [chatRoomId], references: [id], onDelete: Cascade)
 
   userId Int
   user   User @relation("user", fields: [userId], references: [id])
 
+  lastMessageRoom ChatRoom? @relation("lastMessage")
+
   reaction Reaction[]
 
-  seenUserId Int
+  seenUserId Int?
   seen       User[] @relation("seen")
 }
 
