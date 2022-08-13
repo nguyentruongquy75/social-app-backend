@@ -64,7 +64,7 @@ export class PostService extends CrudService {
       },
     });
 
-    return user;
+    return post;
   }
 
   async editPost(userId: number, editPostDto: EditPostDto) {
