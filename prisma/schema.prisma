@@ -151,7 +151,7 @@ model Notification {
   title     String
   link      String
   type      String
-  isRead    Boolean
+  isRead    Boolean? @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
 
@@ -161,11 +161,11 @@ model Notification {
   postId Int?
   post   Post? @relation(fields: [postId], references: [id], onDelete: Cascade)
 
-  forCommentId Int?
-  forComment   Comment? @relation(fields: [forCommentId], references: [id], onDelete: Cascade)
+  commentId Int?
+  comment   Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
 
-  forReactionId Int?
-  forReaction   Reaction? @relation(fields: [forReactionId], references: [id], onDelete: Cascade)
+  reactionId Int?
+  reaction   Reaction? @relation(fields: [reactionId], references: [id], onDelete: Cascade)
 }
 
 model ChatRoomOnUser {

@@ -1,7 +1,13 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { INVALID_ID_PROVIDED } from 'src/constants';
+import {
+  INVALID_ID_PROVIDED,
+  REACTION_COMMENT_NOTIFICATION_MESSAGE,
+  REACTION_POST_NOTIFICATION_MESSAGE,
+} from 'src/constants';
 import { CrudService } from 'src/crud/crud.service';
 import { crud } from 'src/crud/decorator/crud.decorator';
+import { NotificationTypes } from 'src/notification/dto/notification.dto';
+import { NotificationService } from 'src/notification/notification.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
   CreateReactionDto,
@@ -12,36 +18,71 @@ import {
 @Injectable()
 @crud('reaction')
 export class ReactionService extends CrudService {
-  constructor(private prismaService: PrismaService) {
+  constructor(
+    private prismaService: PrismaService,
+    private notificationService: NotificationService,
+  ) {
     super(prismaService);
   }
 
   async createReaction(createReactionDto: CreateReactionDto) {
+    let notificationUserId, notificationTitle, post, comment;
+
     if (createReactionDto.postId) {
-      const post = await this.prismaService.post.findUnique({
+      const checkPost = await this.prismaService.post.findUnique({
         where: {
           id: createReactionDto.postId,
         },
-      });
-
-      if (!post)
-        throw new HttpException('Invalid Post ID', HttpStatus.BAD_REQUEST);
-    }
-
-    if (createReactionDto.commentId) {
-      const comment = await this.prismaService.comment.findUnique({
-        where: {
-          id: createReactionDto.commentId,
+        include: {
+          reactions: true,
         },
       });
 
-      if (!comment)
-        throw new HttpException('Invalid Comment ID', HttpStatus.BAD_REQUEST);
+      if (!checkPost)
+        throw new HttpException('Invalid Post ID', HttpStatus.BAD_REQUEST);
+
+      notificationUserId = checkPost.userId;
+      post = checkPost;
     }
 
-    const reaction = await this.createOne(createReactionDto);
+    if (createReactionDto.commentId) {
+      const checkComment = await this.prismaService.comment.findUnique({
+        where: {
+          id: createReactionDto.commentId,
+        },
+        include: {
+          reactions: true,
+        },
+      });
 
-    if (createReactionDto.postId)
+      if (!checkComment)
+        throw new HttpException('Invalid Comment ID', HttpStatus.BAD_REQUEST);
+
+      notificationUserId = checkComment.userId;
+      comment = checkComment;
+    }
+
+    const reaction = await this.prismaService.reaction.create({
+      data: createReactionDto,
+      include: {
+        user: true,
+      },
+    });
+
+    if (createReactionDto.postId) {
+      const uniqueReactionUsers: Set<number> = new Set(
+        post.reactions.map((reaction) => reaction.userId),
+      );
+
+      uniqueReactionUsers.delete(post.userId);
+
+      notificationTitle = this.notificationService.generateNotificationMessage({
+        authorId: reaction.userId,
+        set: uniqueReactionUsers,
+        username: reaction.user.fullName,
+        message: REACTION_POST_NOTIFICATION_MESSAGE,
+      });
+
       this.prismaService.post.update({
         where: {
           id: createReactionDto.postId,
@@ -55,7 +96,30 @@ export class ReactionService extends CrudService {
         },
       });
 
-    if (createReactionDto.commentId)
+      post.userId !== reaction.userId &&
+        this.notificationService.createOrUpdateNotification({
+          link: '',
+          postId: post.id,
+          title: notificationTitle,
+          type: NotificationTypes.REACTION,
+          userId: post.userId,
+        });
+    }
+
+    if (createReactionDto.commentId) {
+      const uniqueReactionUsers: Set<number> = new Set(
+        comment.reactions.map((reaction) => reaction.userId),
+      );
+
+      uniqueReactionUsers.delete(comment.userId);
+
+      notificationTitle = this.notificationService.generateNotificationMessage({
+        authorId: reaction.userId,
+        set: uniqueReactionUsers,
+        username: reaction.user.fullName,
+        message: REACTION_COMMENT_NOTIFICATION_MESSAGE,
+      });
+
       this.prismaService.comment.update({
         where: {
           id: createReactionDto.commentId,
@@ -68,6 +132,17 @@ export class ReactionService extends CrudService {
           },
         },
       });
+
+      comment.userId !== reaction.userId &&
+        this.notificationService.createOrUpdateNotification({
+          link: '',
+          commentId: comment.id,
+          title: notificationTitle,
+          type: NotificationTypes.REACTION,
+          userId: comment.userId,
+          postId: comment.postId,
+        });
+    }
 
     return reaction;
   }

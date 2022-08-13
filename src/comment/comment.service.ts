@@ -1,14 +1,23 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { INVALID_ID_PROVIDED } from 'src/constants';
+import {
+  COMMENT_NOTIFICATION_MESSAGE,
+  INVALID_ID_PROVIDED,
+  REPLY_NOTIFICATION_MESSAGE,
+} from 'src/constants';
 import { CrudService } from 'src/crud/crud.service';
 import { crud } from 'src/crud/decorator/crud.decorator';
+import { NotificationTypes } from 'src/notification/dto/notification.dto';
+import { NotificationService } from 'src/notification/notification.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateCommentDto, UpdateCommentDto } from './dto/comment.dto';
 
 @Injectable()
 @crud('comment')
 export class CommentService extends CrudService {
-  constructor(private prismaService: PrismaService) {
+  constructor(
+    private prismaService: PrismaService,
+    private notificationService: NotificationService,
+  ) {
     super(prismaService);
   }
 
@@ -17,7 +26,11 @@ export class CommentService extends CrudService {
       where: {
         id: createCommentDto.postId,
       },
+      include: {
+        comments: true,
+      },
     });
+
     if (!post)
       throw new HttpException(INVALID_ID_PROVIDED, HttpStatus.BAD_REQUEST);
 
@@ -28,7 +41,17 @@ export class CommentService extends CrudService {
         connect: createCommentDto.tags.map((id) => ({ id })),
       };
 
-    const newComment = await this.createOne(createCommentBuilder);
+    const newComment = await this.prismaService.comment.create({
+      data: createCommentBuilder,
+      include: {
+        user: true,
+        replyOf: {
+          include: {
+            replies: true,
+          },
+        },
+      },
+    });
 
     this.prismaService.post.update({
       where: {
@@ -43,7 +66,31 @@ export class CommentService extends CrudService {
       },
     });
 
-    if (createCommentDto.replyId)
+    // notification
+    const uniqueCommentUsers = new Set(
+      post.comments.map((comment) => comment.userId),
+    );
+
+    uniqueCommentUsers.delete(post.userId);
+
+    const notificationTitle =
+      this.notificationService.generateNotificationMessage({
+        authorId: newComment.userId,
+        message: COMMENT_NOTIFICATION_MESSAGE,
+        set: uniqueCommentUsers,
+        username: newComment.user.fullName,
+      });
+
+    post.userId !== newComment.userId &&
+      this.notificationService.createOrUpdateNotification({
+        title: notificationTitle,
+        link: '',
+        type: NotificationTypes.COMMENT,
+        postId: createCommentDto.postId,
+        userId: post.userId,
+      });
+
+    if (createCommentDto.replyId) {
       this.updateOne(createCommentDto.replyId, {
         replies: {
           connect: {
@@ -51,6 +98,20 @@ export class CommentService extends CrudService {
           },
         },
       });
+
+      newComment.replyOf.userId !== newComment.userId &&
+        this.notificationService.createNotification({
+          title: REPLY_NOTIFICATION_MESSAGE.replace(
+            '{{user}}',
+            newComment.user.fullName,
+          ),
+          link: '',
+          type: NotificationTypes.COMMENT,
+          postId: createCommentDto.postId,
+          userId: newComment.replyOf.userId,
+          commentId: newComment.replyId,
+        });
+    }
 
     return newComment;
   }
