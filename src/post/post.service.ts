@@ -1,14 +1,19 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { INVALID_ID_PROVIDED } from 'src/constants';
 import { CrudService } from 'src/crud/crud.service';
 import { crud } from 'src/crud/decorator/crud.decorator';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { getPublicIdImage } from 'src/shared/utils';
 import { CreatePostDto, EditPostDto } from './dto';
 
 @Injectable()
 @crud('post')
 export class PostService extends CrudService {
-  constructor(private prismaService: PrismaService) {
+  constructor(
+    private prismaService: PrismaService,
+    private cloudinaryService: CloudinaryService,
+  ) {
     super(prismaService);
   }
 
@@ -104,6 +109,9 @@ export class PostService extends CrudService {
       throw new HttpException(INVALID_ID_PROVIDED, HttpStatus.BAD_REQUEST);
 
     await this.deleteOne(post.id, true);
+    post.images.map((url) =>
+      this.cloudinaryService.delete(getPublicIdImage(url)),
+    );
 
     return post;
   }

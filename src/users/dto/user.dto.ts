@@ -1,5 +1,10 @@
 import { IsEmail, IsInt, IsNumber, IsOptional } from 'class-validator';
 
+interface Image {
+  public_id: string;
+  url: string;
+}
+
 export class DeleteFriendDto {
   @IsNumber()
   friendId: number;
@@ -17,10 +22,10 @@ export class UpdateUserDto {
   email?: string;
 
   @IsOptional()
-  avatarImage?: string;
+  avatarImage?: Image;
 
   @IsOptional()
-  coverImage?: string;
+  coverImage?: Image;
 }
 
 export class UpdateUserFileDto {
