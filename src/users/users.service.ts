@@ -181,9 +181,7 @@ export class UsersService extends CrudService {
   async updateUser(userId: number, updateUserDto: UpdateUserDto) {
     const checkUser = await this.findOne({
       where: {
-        id: {
-          equals: userId,
-        },
+        id: userId,
       },
     });
 

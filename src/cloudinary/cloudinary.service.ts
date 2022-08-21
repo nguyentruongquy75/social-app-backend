@@ -8,7 +8,7 @@ export class CloudinaryService {
     return new Promise((resolve, reject) => {
       let stream = v2.uploader.upload_stream((err, result) => {
         if (result) {
-          resolve(result);
+          resolve(result.secure_url);
         } else {
           reject(err);
         }
@@ -19,7 +19,23 @@ export class CloudinaryService {
   }
 
   async upload(file: Express.Multer.File) {
-    const response: any = await this.streamUpload(file);
-    return response.secure_url;
+    const response: any = this.streamUpload(file);
+    return response;
+  }
+
+  async delete(id: string) {
+    v2.uploader
+      .destroy(id)
+      .then(() => console.log('Delete successfully'))
+      .catch(() => console.log('Delete Failed'));
+  }
+
+  async checkExist(id: string) {
+    return new Promise((resolve, reject) => {
+      v2.api
+        .resource(id)
+        .then((value) => resolve(Boolean(value)))
+        .catch((err) => resolve(false));
+    });
   }
 }

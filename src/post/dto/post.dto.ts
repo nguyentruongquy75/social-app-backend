@@ -7,7 +7,6 @@ export class CreatePostDto {
   @IsOptional()
   images: string[];
 
-  @IsNumber()
   userId: number;
 
   @IsOptional()
