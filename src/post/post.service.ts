@@ -39,7 +39,7 @@ export class PostService extends CrudService {
   async createPost(createPostDto: CreatePostDto) {
     const user = await this.prismaService.user.findUnique({
       where: {
-        id: createPostDto.userId,
+        id: +createPostDto.userId,
       },
       select: {
         friends: {
