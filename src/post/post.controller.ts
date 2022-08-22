@@ -34,6 +34,7 @@ export class PostController {
   @UseInterceptors(FilesInterceptor('images'))
   @Post('create')
   async createPost(
+    @GetUser() user,
     @Body() createPostDto: CreatePostDto,
     @UploadedFiles() files: Express.Multer.File[],
   ) {
@@ -43,7 +44,10 @@ export class PostController {
 
     createPostDto.images = images;
 
-    return await this.postService.createPost(createPostDto);
+    return await this.postService.createPost({
+      ...createPostDto,
+      userId: user.id,
+    });
   }
 
   @UseInterceptors(FilesInterceptor('images'))
