@@ -125,8 +125,8 @@ export class UsersService extends CrudService {
       },
       include: {
         post: true,
-        forComment: true,
-        forReaction: true,
+        comment: true,
+        reaction: true,
       },
       orderBy: {
         createdAt: 'desc',

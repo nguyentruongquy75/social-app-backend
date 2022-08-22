@@ -29,7 +29,7 @@ export class UsersController {
     private cloudinary: CloudinaryService,
   ) {}
 
-  @Get(':id')
+  @Get('search/:id')
   async getUserById(@Param('id') userId: number) {
     return await this.userService.getUserById(userId);
   }
