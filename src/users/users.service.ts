@@ -1,9 +1,4 @@
-import {
-  HttpCode,
-  HttpException,
-  HttpStatus,
-  Injectable,
-} from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { INVALID_ID_PROVIDED, INVALID_USER_ID } from 'src/constants';
 import { CrudService } from 'src/crud/crud.service';
 import { crud } from 'src/crud/decorator/crud.decorator';
@@ -38,17 +33,55 @@ export class UsersService extends CrudService {
     return user;
   }
 
-  async getSearchUsers(search: string) {
-    const users = await this.findAll({
+  async getSearchUsers(userId: number, search: string) {
+    const friends = await this.findAll({
       where: {
-        fullName: {
-          contains: search,
-          mode: 'insensitive',
-        },
+        AND: [
+          {
+            fullName: {
+              contains: search,
+              mode: 'insensitive',
+            },
+          },
+          {
+            friends: {
+              some: {
+                id: {
+                  equals: userId,
+                },
+              },
+            },
+          },
+        ],
       },
     });
 
-    return users;
+    const users = await this.findAll({
+      where: {
+        AND: [
+          {
+            fullName: {
+              contains: search,
+              mode: 'insensitive',
+            },
+          },
+          {
+            friends: {
+              none: {
+                id: {
+                  equals: userId,
+                },
+              },
+            },
+          },
+        ],
+      },
+    });
+
+    return {
+      friends,
+      users,
+    };
   }
 
   async getFriends(userId: number) {
@@ -112,6 +145,10 @@ export class UsersService extends CrudService {
       include: {
         reactions: true,
         comments: true,
+        user: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
       },
     });
 
@@ -125,16 +162,42 @@ export class UsersService extends CrudService {
       },
       include: {
         post: true,
-        comment: true,
-        reaction: true,
+        comment: {
+          include: {
+            user: true,
+          },
+        },
+        reaction: {
+          include: {
+            user: true,
+          },
+        },
       },
       orderBy: {
-        createdAt: 'desc',
+        updatedAt: 'desc',
       },
       modelName: 'notification',
     });
 
-    return notifications;
+    const unreadNotificationCount = await this.prismaService.notification.count(
+      {
+        where: {
+          AND: [
+            {
+              userId,
+            },
+            {
+              isRead: false,
+            },
+          ],
+        },
+      },
+    );
+
+    return {
+      ...notifications,
+      unreadNotificationCount,
+    };
   }
 
   async getPosts(userId: number) {
@@ -176,7 +239,28 @@ export class UsersService extends CrudService {
     return chatRooms;
   }
 
-  getContacts() {}
+  async getContacts(userId: number) {
+    const contacts = await this.findAll({
+      where: {
+        AND: [
+          {
+            friends: {
+              some: {
+                id: {
+                  equals: userId,
+                },
+              },
+            },
+          },
+          {
+            active: true,
+          },
+        ],
+      },
+    });
+
+    return contacts;
+  }
 
   async updateUser(userId: number, updateUserDto: UpdateUserDto) {
     const checkUser = await this.findOne({

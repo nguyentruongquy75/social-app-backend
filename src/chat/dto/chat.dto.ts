@@ -71,3 +71,8 @@ export class DeleteMessageDto {
   @IsNumber()
   messageId: number;
 }
+
+export class SeenMessageDto {
+  @IsNumber()
+  chatRoomId: number;
+}

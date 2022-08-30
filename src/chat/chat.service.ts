@@ -36,11 +36,20 @@ export class ChatService extends CrudService {
 
     const chatRooms = await this.findAll({
       where: {
-        users: {
-          some: {
-            userId,
+        AND: [
+          {
+            users: {
+              some: {
+                userId,
+              },
+            },
           },
-        },
+          {
+            lastMessageId: {
+              not: null,
+            },
+          },
+        ],
       },
       include: {
         users: {
@@ -57,7 +66,68 @@ export class ChatService extends CrudService {
       },
     });
 
-    return chatRooms;
+    const addedInfo = chatRooms.items.map((chatRoom) => {
+      const { name, image, active, lastActive } = this.getChatRoomInfo(
+        chatRoom,
+        userId,
+      );
+
+      return {
+        ...chatRoom,
+        name,
+        image,
+        active,
+        lastActive,
+      };
+    });
+
+    return {
+      ...chatRooms,
+      items: addedInfo,
+    };
+  }
+
+  async getChatRoomById(id: number) {
+    return await this.prismaService.chatRoom.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        users: {
+          include: {
+            user: true,
+          },
+        },
+      },
+    });
+  }
+
+  getChatRoomInfo(chatRoom: any, userId: number) {
+    const chatRoomName =
+      chatRoom.type === ChatRomTypes.DEFAULT
+        ? chatRoom.users.find((user) => user.userId !== userId).user.fullName
+        : chatRoom.name;
+
+    const chatRoomImage =
+      chatRoom.type === ChatRomTypes.DEFAULT
+        ? chatRoom.users.find((user) => user.userId !== userId).user.avatarImage
+        : chatRoom.image;
+
+    const isActive =
+      chatRoom.type === ChatRomTypes.DEFAULT
+        ? chatRoom.users.find((user) => user.userId !== userId).user.active
+        : true;
+
+    const lastActive =
+      chatRoom.type === ChatRomTypes.DEFAULT
+        ? chatRoom.users.find((user) => user.userId !== userId).user.lastActive
+        : null;
+    return {
+      name: chatRoomName,
+      image: chatRoomImage,
+      active: isActive,
+      lastActive,
+    };
   }
 
   async searchChatRooms(search: string) {
@@ -201,10 +271,22 @@ export class ChatService extends CrudService {
     return updatedChatRoom;
   }
 
-  async getChatRoomMessages(chatRoomId: number) {
-    const chatRoom = await this.findOne({
+  async getChatRoomMessages(
+    userId: number,
+    chatRoomId: number,
+    page = 1,
+    size = 10,
+  ) {
+    const chatRoom = await this.prismaService.chatRoom.findUnique({
       where: {
         id: chatRoomId,
+      },
+      include: {
+        users: {
+          include: {
+            user: true,
+          },
+        },
       },
     });
 
@@ -220,10 +302,27 @@ export class ChatService extends CrudService {
         reaction: true,
         seen: true,
       },
+      orderBy: {
+        createdAt: 'desc',
+      },
       modelName: 'message',
+      page,
+      size,
     });
 
-    return messages;
+    const { name, active, lastActive } = this.getChatRoomInfo(chatRoom, userId);
+
+    return {
+      ...messages,
+      room: {
+        name,
+        active,
+        lastActive,
+        type: chatRoom.type,
+        id: chatRoom.id,
+      },
+      items: messages.items.slice().reverse(),
+    };
   }
 
   async addMessage(addMessageDto: AddMessageDto) {
@@ -250,7 +349,11 @@ export class ChatService extends CrudService {
         chatRoomId,
         content,
         userId,
-        seenUserId: userId,
+        seen: {
+          connect: {
+            id: userId,
+          },
+        },
       },
     });
 
@@ -306,5 +409,44 @@ export class ChatService extends CrudService {
     });
 
     return message;
+  }
+
+  async seenMessage(userId: number, chatRoomId: number) {
+    const messages = await this.prismaService.message.findMany({
+      where: {
+        AND: [
+          { chatRoomId },
+          {
+            seen: {
+              none: {
+                id: userId,
+              },
+            },
+          },
+        ],
+      },
+      include: {
+        seen: true,
+      },
+    });
+
+    await Promise.all(
+      messages.map((message) =>
+        this.prismaService.message.update({
+          where: {
+            id: message.id,
+          },
+          data: {
+            seen: {
+              connect: {
+                id: userId,
+              },
+            },
+          },
+        }),
+      ),
+    );
+
+    return 'Seen Successfully';
   }
 }

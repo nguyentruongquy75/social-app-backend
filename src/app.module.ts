@@ -13,6 +13,8 @@ import { ReactionModule } from './reaction/reaction.module';
 import { CommentModule } from './comment/comment.module';
 import { ChatModule } from './chat/chat.module';
 import { NotificationModule } from './notification/notification.module';
+import { EventGateway } from './event.gateway';
+import { UsersService } from './users/users.service';
 
 @Module({
   imports: [
@@ -28,6 +30,12 @@ import { NotificationModule } from './notification/notification.module';
     NotificationModule,
   ],
   controllers: [AppController],
-  providers: [AppService, PrismaService, CrudService],
+  providers: [
+    AppService,
+    PrismaService,
+    CrudService,
+    EventGateway,
+    UsersService,
+  ],
 })
 export class AppModule {}

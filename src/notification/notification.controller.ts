@@ -1,6 +1,7 @@
 import { Body, Controller, Post } from '@nestjs/common';
 import {
   CreateNotificationDto,
+  ReadNotificationDto,
   UpdateNotificationDto,
 } from './dto/notification.dto';
 import { NotificationService } from './notification.service';
@@ -32,6 +33,13 @@ export class NotificationController {
   ) {
     return await this.notificationService.createOrUpdateNotification(
       createNotificationDto,
+    );
+  }
+
+  @Post('read')
+  async readNotifications(@Body() readNotificationDto: ReadNotificationDto) {
+    return await this.notificationService.readNotifications(
+      readNotificationDto.userId,
     );
   }
 }

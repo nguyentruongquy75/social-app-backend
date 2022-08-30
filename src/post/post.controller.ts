@@ -57,21 +57,26 @@ export class PostController {
     @Body() editPostDto: EditPostDto,
     @UploadedFiles() files: Express.Multer.File[],
   ) {
-    if (files.length > 0) {
-      const post = await this.postService.getPostById(editPostDto.postId);
+    // if (files.length > 0) {
+    //   const post = await this.postService.getPostById(editPostDto.postId);
 
-      post.images.forEach((image) =>
-        this.cloudinaryService.delete(getPublicIdImage(image)),
-      );
+    //   post.images.forEach((image) =>
+    //     this.cloudinaryService.delete(getPublicIdImage(image)),
+    //   );
 
-      const images = await Promise.all(
-        files.map((file) => this.cloudinaryService.upload(file)),
-      );
+    //   const images = await Promise.all(
+    //     files.map((file) => this.cloudinaryService.upload(file)),
+    //   );
 
-      editPostDto.images = images;
-    }
+    //   editPostDto.images = images;
+    // }
 
-    return await this.postService.editPost(user.id, editPostDto);
+    // return await this.postService.editPost(user.id, editPostDto);
+
+    return {
+      files,
+      editPostDto,
+    };
   }
 
   @Delete('delete')
@@ -82,6 +87,14 @@ export class PostController {
   @Get(':id/reactions')
   async getPostReactions(@Param('id') postId: number) {
     return await this.postService.getPostReactions(postId);
+  }
+
+  @Get(':id/reactions/:type')
+  async getPostReactionsByType(
+    @Param('id') postId: number,
+    @Param('type') type: string,
+  ) {
+    return await this.postService.getPostReactionsByType(postId, type);
   }
 
   @Get(':id/comments')

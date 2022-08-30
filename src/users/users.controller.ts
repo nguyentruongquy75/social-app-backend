@@ -35,13 +35,18 @@ export class UsersController {
   }
 
   @Get('search')
-  async getUsers(@Query('q') search: string) {
-    return await this.userService.getSearchUsers(search);
+  async getUsers(@Query('q') search: string, @GetUser() user) {
+    return await this.userService.getSearchUsers(user.id, search);
   }
 
   @Get('friends')
   async getFriends(@GetUser() user) {
     return await this.userService.getFriends(user.id);
+  }
+
+  @Get('contacts')
+  async getContacts(@GetUser() user) {
+    return await this.userService.getContacts(user.id);
   }
 
   @Get('/:id/friends')
@@ -90,6 +95,7 @@ export class UsersController {
     FileFieldsInterceptor([
       {
         name: 'avatarImage',
+        maxCount: 1,
       },
       {
         name: 'coverImage',
@@ -102,14 +108,16 @@ export class UsersController {
     @Body() updateUserDto: UpdateUserDto,
     @UploadedFiles() files: UpdateUserFileDto,
   ) {
-    if (files.avatarImage) {
-      const url = await this.cloudinary.upload(files.avatarImage[0]);
-      updateUserDto.avatarImage = url;
-    }
+    if (files) {
+      if (files.avatarImage) {
+        const url = await this.cloudinary.upload(files.avatarImage[0]);
+        updateUserDto.avatarImage = url;
+      }
 
-    if (files.coverImage) {
-      const url = await this.cloudinary.upload(files.coverImage[0]);
-      updateUserDto.coverImage = url;
+      if (files.coverImage) {
+        const url = await this.cloudinary.upload(files.coverImage[0]);
+        updateUserDto.coverImage = url;
+      }
     }
     return await this.userService.updateUser(user.id, updateUserDto);
   }

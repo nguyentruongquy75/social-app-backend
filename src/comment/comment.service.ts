@@ -178,4 +178,50 @@ export class CommentService extends CrudService {
 
     return comment;
   }
+
+  async getCommentReactions(commentId: number) {
+    const comment = await this.findOne({
+      where: {
+        id: commentId,
+      },
+    });
+
+    if (!comment)
+      throw new HttpException(INVALID_ID_PROVIDED, HttpStatus.BAD_REQUEST);
+
+    const reactions = await this.findAll({
+      where: {
+        commentId,
+      },
+      include: {
+        user: true,
+      },
+      modelName: 'reaction',
+    });
+
+    return reactions;
+  }
+
+  async getCommentReactionsByType(commentId: number, type: string) {
+    const comment = await this.findOne({
+      where: {
+        id: commentId,
+      },
+    });
+
+    if (!comment)
+      throw new HttpException(INVALID_ID_PROVIDED, HttpStatus.BAD_REQUEST);
+
+    const reactions = await this.findAll({
+      where: {
+        AND: [{ commentId, type }],
+      },
+      include: {
+        user: true,
+      },
+      modelName: 'reaction',
+    });
+
+    return reactions;
+  }
 }

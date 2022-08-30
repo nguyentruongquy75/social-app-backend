@@ -139,6 +139,29 @@ export class PostService extends CrudService {
     return reactions;
   }
 
+  async getPostReactionsByType(postId: number, type: string) {
+    const post = await this.findOne({
+      where: {
+        id: postId,
+      },
+    });
+
+    if (!post)
+      throw new HttpException(INVALID_ID_PROVIDED, HttpStatus.BAD_REQUEST);
+
+    const reactions = await this.findAll({
+      where: {
+        AND: [{ postId }, { type }],
+      },
+      include: {
+        user: true,
+      },
+      modelName: 'reaction',
+    });
+
+    return reactions;
+  }
+
   async getPostComments(postId: number) {
     const post = await this.findOne({
       where: {
@@ -164,6 +187,15 @@ export class PostService extends CrudService {
       include: {
         user: true,
         tags: true,
+        reactions: true,
+        replies: {
+          include: {
+            user: true,
+            tags: true,
+            replies: true,
+            reactions: true,
+          },
+        },
       },
       modelName: 'comment',
     });

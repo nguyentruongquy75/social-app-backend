@@ -39,4 +39,17 @@ export class CommentController {
   async deleteComment(@Param('id') commentId: number) {
     return this.commentService.deleteComment(commentId);
   }
+
+  @Get(':id/reactions')
+  async getCommentReactions(@Param('id') commentId: number) {
+    return await this.commentService.getCommentReactions(commentId);
+  }
+
+  @Get(':id/reactions/:type')
+  async getCommentReactionsByType(
+    @Param('id') commentId: number,
+    @Param('type') type: string,
+  ) {
+    return await this.commentService.getCommentReactionsByType(commentId, type);
+  }
 }

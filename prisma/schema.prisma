@@ -18,6 +18,8 @@ model User {
   password              String
   avatarImage           String?
   coverImage            String?
+  active                Boolean?
+  lastActive            DateTime?
   createdAt             DateTime         @default(now())
   updatedAt             DateTime         @default(now())
   status                String
@@ -129,8 +131,7 @@ model Message {
 
   reaction Reaction[]
 
-  seenUserId Int?
-  seen       User[] @relation("seen")
+  seen User[] @relation("seen")
 }
 
 model Invitation {

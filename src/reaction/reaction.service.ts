@@ -103,6 +103,7 @@ export class ReactionService extends CrudService {
           title: notificationTitle,
           type: NotificationTypes.REACTION,
           userId: post.userId,
+          reactionId: reaction.id,
         });
     }
 
@@ -141,6 +142,7 @@ export class ReactionService extends CrudService {
           type: NotificationTypes.REACTION,
           userId: comment.userId,
           postId: comment.postId,
+          reactionId: reaction.id,
         });
     }
 

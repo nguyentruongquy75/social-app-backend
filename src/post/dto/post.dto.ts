@@ -20,7 +20,7 @@ export class EditPostDto {
   @IsOptional()
   images?: string[];
 
-  @IsNumber()
+  // @IsNumber()
   postId: number;
 }
 

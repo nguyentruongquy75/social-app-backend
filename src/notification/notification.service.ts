@@ -71,6 +71,7 @@ export class NotificationService {
         title,
         updatedAt: new Date(),
         isRead: false,
+        ...queryBuilder,
       },
     });
 
@@ -88,5 +89,16 @@ export class NotificationService {
       count > 0 ? `${username} và ${count} người khác` : `${username}`;
 
     return message.replace('{{user}}', users);
+  }
+
+  async readNotifications(userId: number) {
+    return await this.prismaService.notification.updateMany({
+      where: {
+        userId,
+      },
+      data: {
+        isRead: true,
+      },
+    });
   }
 }

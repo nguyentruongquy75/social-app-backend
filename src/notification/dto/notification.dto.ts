@@ -64,3 +64,8 @@ export class GenerateNotificationMessageDto {
 
   username: string;
 }
+
+export class ReadNotificationDto {
+  @IsNumber()
+  userId: number;
+}

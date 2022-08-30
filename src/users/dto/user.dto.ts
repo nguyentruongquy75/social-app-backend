@@ -26,6 +26,12 @@ export class UpdateUserDto {
 
   @IsOptional()
   coverImage?: Image;
+
+  @IsOptional()
+  active?: Boolean;
+
+  @IsOptional()
+  lastActive?: Date;
 }
 
 export class UpdateUserFileDto {
