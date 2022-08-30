@@ -10,7 +10,7 @@ import { EVENTS } from './constants';
 import { PrismaService } from './prisma/prisma.service';
 import { UsersService } from './users/users.service';
 
-@WebSocketGateway(80, { cors: true })
+@WebSocketGateway({ cors: true })
 export class EventGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server;
 
