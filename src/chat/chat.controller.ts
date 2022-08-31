@@ -32,6 +32,11 @@ export class ChatController {
     return this.chatService.getChatRooms(user.id);
   }
 
+  @Put('read')
+  async readChatRooms(@GetUser() user) {
+    return this.chatService.readChatRooms(user.id);
+  }
+
   @Get(':id')
   async getChatRoomById(@Param('id') id: number) {
     return await this.chatService.getChatRoomById(id);

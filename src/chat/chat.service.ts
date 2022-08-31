@@ -115,7 +115,34 @@ export class ChatService extends CrudService {
     };
   }
 
-  async readChatRooms(userId: number) {}
+  async readChatRooms(userId: number) {
+    await this.prismaService.chatRoom.updateMany({
+      where: {
+        AND: [
+          {
+            users: {
+              some: {
+                userId,
+              },
+            },
+          },
+          {
+            isRead: false,
+          },
+          {
+            lastMessage: {
+              userId: {
+                not: userId,
+              },
+            },
+          },
+        ],
+      },
+      data: {
+        isRead: true,
+      },
+    });
+  }
 
   async getChatRoomById(id: number) {
     return await this.prismaService.chatRoom.findUnique({
@@ -394,6 +421,7 @@ export class ChatService extends CrudService {
       data: {
         lastMessageId: message.id,
         updatedAt: new Date(),
+        isRead: false,
       },
     });
 
