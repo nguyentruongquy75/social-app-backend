@@ -64,6 +64,9 @@ export class ChatService extends CrudService {
           },
         },
       },
+      orderBy: {
+        updatedAt: 'desc',
+      },
     });
 
     const addedInfo = chatRooms.items.map((chatRoom) => {
@@ -81,11 +84,38 @@ export class ChatService extends CrudService {
       };
     });
 
+    const unreadCount = await this.prismaService.chatRoom.count({
+      where: {
+        AND: [
+          {
+            users: {
+              some: {
+                userId,
+              },
+            },
+          },
+          {
+            isRead: false,
+          },
+          {
+            lastMessage: {
+              userId: {
+                not: userId,
+              },
+            },
+          },
+        ],
+      },
+    });
+
     return {
       ...chatRooms,
       items: addedInfo,
+      unreadCount,
     };
   }
+
+  async readChatRooms(userId: number) {}
 
   async getChatRoomById(id: number) {
     return await this.prismaService.chatRoom.findUnique({
@@ -363,6 +393,7 @@ export class ChatService extends CrudService {
       },
       data: {
         lastMessageId: message.id,
+        updatedAt: new Date(),
       },
     });
 
